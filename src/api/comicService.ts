@@ -3,7 +3,7 @@
 import axios from 'axios';
 import qs from 'qs';
 
-const MANGADEX_API_URL = import.meta.env.VITE_MANGADEX_API_URL;
+
 const CONSUMET_API_URL = import.meta.env.VITE_CONSUMET_API_URL;
 const YOUR_BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
@@ -135,7 +135,7 @@ export const getComicById = async (id: string, language: string, showNsfw: boole
     const remainingRequestsCount = Math.ceil((totalChapters - limit) / limit);
     const promises = [];
     for (let i = 1; i <= remainingRequestsCount; i++) {
-      const promise = axios.get(`${MANGADEX_API_URL}/manga/${id}/feed`, {
+      const promise = axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}/feed`, {
         params: { 'order[chapter]': 'desc', limit, offset: i * limit, ...getContentRatingParams(showNsfw) },
       });
       promises.push(promise);
@@ -354,7 +354,7 @@ export const getMangaTags = async () => {
 
 export const getPopularComics = async (limit: number, offset: number, showNsfw: boolean, language: string) => {
   try {
-    const response = await axios.get(`${MANGADEX_API_URL}/manga`, {
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga`, {
       params: {
         limit,
         offset,
