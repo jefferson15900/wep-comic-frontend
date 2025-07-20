@@ -5,6 +5,7 @@ import qs from 'qs';
 
 const MANGADEX_API_URL = import.meta.env.VITE_MANGADEX_API_URL;
 const CONSUMET_API_URL = import.meta.env.VITE_CONSUMET_API_URL;
+const YOUR_BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
 export interface MappedComic {
   id: string;
@@ -106,7 +107,7 @@ export const getAllComics = async (limit: number, offset: number, searchTerm: st
   } else {
     params['order[latestUploadedChapter]'] = 'desc';
   }
-  const response = await axios.get(`${MANGADEX_API_URL}/manga`, { params });
+  const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga`, { params });
   return {
     comics: response.data.data.map(mapApiDataToComic),
     hasMore: (offset + response.data.data.length) < response.data.total,
@@ -114,7 +115,7 @@ export const getAllComics = async (limit: number, offset: number, searchTerm: st
 };
 
 export const getComicById = async (id: string, language: string, showNsfw: boolean): Promise<MappedComic> => { // <-- Añadimos el tipo de retorno
-  const comicDetailsResponse = await axios.get(`${MANGADEX_API_URL}/manga/${id}`, {
+  const comicDetailsResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}`,{
     params: { 'includes[]': ['cover_art', 'author'] },
   });
   
@@ -123,7 +124,7 @@ export const getComicById = async (id: string, language: string, showNsfw: boole
   const comicDetails: MappedComic = mapApiDataToComic(comicDetailsResponse.data.data);
 
   const limit = 500;
-  const initialChaptersResponse = await axios.get(`${MANGADEX_API_URL}/manga/${id}/feed`, {
+  const initialChaptersResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}/feed`,  {
     params: { 'order[chapter]': 'desc', limit, offset: 0, ...getContentRatingParams(showNsfw) },
   });
 
@@ -154,7 +155,7 @@ export const getComicById = async (id: string, language: string, showNsfw: boole
 
 export const getMangaStatistics = async (mangaId: string) => {
   try {
-    const response = await axios.get(`${MANGADEX_API_URL}/statistics/manga`, {
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/statistics/manga`, {
       params: { 'manga[]': [mangaId] },
     });
     const stats = response.data.statistics[mangaId];
@@ -167,7 +168,7 @@ export const getMangaStatistics = async (mangaId: string) => {
 };
 
 export const getChapterPages = async (chapterId: string) => {
-  const response = await axios.get(`${MANGADEX_API_URL}/at-home/server/${chapterId}`);
+  const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/at-home/server/${chapterId}`);
   const { baseUrl, chapter } = response.data;
   return chapter.dataSaver.map((fileName: string) => `${baseUrl}/data-saver/${chapter.hash}/${fileName}`);
 };
@@ -183,7 +184,7 @@ export const getComicsByIds = async (ids: string[]) => {
 
   try {
     const requests = idBatches.map(batch => 
-      axios.get(`${MANGADEX_API_URL}/manga`, {
+      axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga`, {
         params: { 'ids': batch, 'limit': batch.length, 'includes': ['cover_art', 'author'] },
         paramsSerializer: params => qs.stringify(params, { arrayFormat: 'brackets' })
       })
@@ -202,7 +203,7 @@ export const getComicsByIds = async (ids: string[]) => {
 
 export const getRecentlyUpdatedComics = async (limit: number = 20, showNsfw: boolean, language: string) => {
   try {
-    const chaptersResponse = await axios.get(`${MANGADEX_API_URL}/chapter`, {
+    const chaptersResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/chapter`,  {
       params: {
         limit: 100, // Obtenemos más capítulos para asegurar que tengamos suficientes mangas únicos
         order: { readableAt: 'desc' },
@@ -294,7 +295,7 @@ export const getPagesFromConsumetProvider = async (chapterId: string, provider: 
 
 export const getNewlyAddedComics = async (limit: number = 20, showNsfw: boolean) => {
   try {
-    const response = await axios.get(`${MANGADEX_API_URL}/manga`, {
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga`,   {
       params: {
         'limit': limit,
         'includes[]': ['cover_art', 'author'],
@@ -312,7 +313,7 @@ export const getNewlyAddedComics = async (limit: number = 20, showNsfw: boolean)
 
 export const getComicsByTag = async (tagId: string, limit: number, offset: number, showNsfw: boolean, language: string) => {
   try {
-    const response = await axios.get(`${MANGADEX_API_URL}/manga`, {
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/newly-added`,  {
       params: {
         'includedTags[]': [tagId],
         limit,
@@ -336,7 +337,8 @@ export const getComicsByTag = async (tagId: string, limit: number, offset: numbe
 
 export const getMangaTags = async () => {
   try {
-    const response = await axios.get(`${MANGADEX_API_URL}/manga/tag`);
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/tag`);
+
     // Filtramos para obtener solo los géneros y los mapeamos a un formato más simple
     return response.data.data
       .filter((tag: any) => tag.attributes.group === 'genre')
