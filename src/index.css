@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --background-dark: #1F1D2B;
+  --surface-dark: #252836;
+  --primary-accent: #EA7C69;
+  --secondary-accent: #9288E0;
+  --text-primary: #FFFFFF;
+  --text-secondary: #ABBBC2;
+}
+
+body {
+  /* Aplicamos el color de fondo usando nuestra nueva variable */
+  background-color: var(--background-dark);
+}
+
+/* Para navegadores basados en WebKit (Chrome, Safari, Edge, etc.) */
+::-webkit-scrollbar {
+  width: 8px; /* Ancho de la barra de scroll */
+}
+
+/* El fondo de la pista de la barra de scroll */
+::-webkit-scrollbar-track {
+  background: var(--surface-dark); /* Un color oscuro pero visible */
+  border-radius: 10px;
+}
+
+/* El "pulgar" o la parte que se mueve de la barra de scroll */
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary-accent); /* Usa nuestro color de acento */
+  border-radius: 10px;
+  border: 2px solid var(--surface-dark); /* Crea un pequeño borde alrededor */
+}
+
+/* El "pulgar" cuando pasas el ratón por encima */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #ff9d8e; /* Una versión un poco más clara del color de acento */
+}
+
+/* Para Firefox (un enfoque más simple) */
+* {
+  scrollbar-width: thin; /* Hace la barra de scroll más delgada */
+  scrollbar-color: var(--primary-accent) var(--surface-dark); /* Color del pulgar y de la pista */
+}
