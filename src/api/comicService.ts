@@ -43,7 +43,7 @@ const getLanguageParams = (language: string) => {
   const author = apiData.relationships.find((rel: any) => rel.type === 'author');
   const coverFileName = coverArt?.attributes?.fileName;
   const coverUrl = coverFileName 
-    ? `https://uploads.mangadex.org/covers/${apiData.id}/${coverFileName}`
+    ? `${YOUR_BACKEND_API_URL}/mangadex/covers/${apiData.id}/${coverFileName}`
     : 'https://via.placeholder.com/400x600.png?text=No+Cover';
 
   const allTitlesSet = new Set<string>();
