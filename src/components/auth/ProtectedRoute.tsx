@@ -1,17 +1,27 @@
 // src/components/auth/ProtectedRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Spinner from '../common/Spinner'; // Asegúrate de que Spinner esté importado
 
 const ProtectedRoute = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth(); // <-- Obtenemos isLoading
 
-  // Si no hay usuario, redirige a /login.
-  // 'replace' evita que la página protegida se añada al historial del navegador.
+  // --- ¡ESTA ES LA LÓGICA CLAVE! ---
+  // Si estamos cargando, no tomes ninguna decisión todavía, solo muestra un spinner.
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
+  // Si ya no estamos cargando y NO hay usuario, entonces redirige.
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si hay usuario, renderiza el componente hijo (la página protegida).
+  // Si ya no estamos cargando y SÍ hay usuario, muestra el contenido.
   return <Outlet />;
 };
 
