@@ -313,9 +313,10 @@ export const getNewlyAddedComics = async (limit: number = 20, showNsfw: boolean)
 
 export const getComicsByTag = async (tagId: string, limit: number, offset: number, showNsfw: boolean, language: string) => {
   try {
-    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/newly-added`,  {
+    // --- ¡ASEGÚRATE DE QUE LA URL ES '/mangadex/manga'! ---
+    const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga`, {
       params: {
-        'includedTags[]': [tagId],
+        'includedTags[]': [tagId], // El tag se pasa como parámetro, no en la URL
         limit,
         offset,
         'includes[]': ['cover_art', 'author'],
@@ -330,7 +331,6 @@ export const getComicsByTag = async (tagId: string, limit: number, offset: numbe
     };
   } catch (error) {
     console.error(`Error fetching comics by tag ${tagId}:`, error);
-    // Devuelve un objeto con un array vacío para que la página no se rompa
     return { comics: [], hasMore: false };
   }
 };
