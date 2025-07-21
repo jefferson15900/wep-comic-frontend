@@ -53,7 +53,7 @@ const ComicCarousel = ({ title, comics, loading, onDeleteComic, deleteVariant = 
       {title && <h2 className="text-2xl font-bold mb-4">{title}</h2>}
 
       {loading ? (
-        <div className="flex justify-center p-8"><Spinner /></div>
+         <div className="flex justify-center items-center min-h-[300px]"><Spinner /></div>
       ) : (
         // Este es el "GRUPO EXTERNO". Controla los botones de navegación.
         <div className="relative group/carousel"> 

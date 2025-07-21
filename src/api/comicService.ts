@@ -168,9 +168,16 @@ export const getMangaStatistics = async (mangaId: string) => {
 };
 
 export const getChapterPages = async (chapterId: string) => {
+  // 1. Obtenemos la información del servidor de imágenes de MangaDex a través de nuestro proxy
   const response = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/at-home/server/${chapterId}`);
-  const { baseUrl, chapter } = response.data;
-  return chapter.dataSaver.map((fileName: string) => `${baseUrl}/data-saver/${chapter.hash}/${fileName}`);
+  const { chapter } = response.data; // Ya no necesitamos baseUrl
+
+  // --- ¡CORRECCIÓN CLAVE! ---
+  // 2. Construimos un array de URLs que apuntan a NUESTRO PROPIO BACKEND,
+  // usando la nueva ruta de proxy que creamos.
+  return chapter.dataSaver.map((fileName: string) => 
+    `${YOUR_BACKEND_API_URL}/mangadex/data-saver/${chapter.hash}/${fileName}`
+  );
 };
 
 export const getComicsByIds = async (ids: string[]) => {
