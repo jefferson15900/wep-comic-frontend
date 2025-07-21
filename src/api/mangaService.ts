@@ -29,13 +29,6 @@ export const getUploadedMangaById = async (mangaId: string, token?: string) => {
   return response.data;
 };
 
-// Obtener las páginas de un capítulo (ahora también maneja permisos)
-export const getUploadedChapterPages = async (mangaId: string, chapterId: string, token?: string) => {
-    const config = token ? getConfig(token) : {};
-    const response = await axios.get(`${API_URL}${mangaId}/chapters/${chapterId}/pages`, config);
-    return response.data;
-};
-
 // Obtener múltiples mangas por sus IDs (para favoritos)
 export const getUploadedMangasByIds = async (ids: string[]) => {
   if (ids.length === 0) return [];
