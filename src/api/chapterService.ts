@@ -31,7 +31,6 @@ export const getUploadedChapterPages = async (mangaId: string, chapterId: string
   const response = await axios.get(`${getChapterApiUrl(mangaId)}${chapterId}/pages`, config);
   
   const responseData = response.data;
-  console.log("Respuesta del backend para las páginas:", responseData);
 
   // Verificamos si la respuesta es directamente un array de URLs
   if (Array.isArray(responseData)) {
