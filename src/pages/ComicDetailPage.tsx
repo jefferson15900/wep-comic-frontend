@@ -13,6 +13,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useContentFilter } from '../context/ContentFilterContext';
 import { useAuth } from '../context/AuthContext';
 import { Bookmark, HelpCircle, ArrowUpDown, Star, Heart, Plus, Edit } from 'lucide-react';
+import CommentSection from '../components/comments/CommentSection';
 
 interface BaseComic {
   id: string;
@@ -45,7 +46,7 @@ const ComicDetailPage = () => {
   const [sortAscending, setSortAscending] = useState(false);
   const [isSearchingOtherSources, setIsSearchingOtherSources] = useState(false);
   const { user } = useAuth(); 
-  
+
   useEffect(() => {
     if (!comicId) return;
 
@@ -148,7 +149,7 @@ const ComicDetailPage = () => {
       alert('No se pudo eliminar el capítulo.');
     }
   };
-
+  
 
   return (
     <>
@@ -179,18 +180,18 @@ const ComicDetailPage = () => {
           {isCommunityManga && user && (
             <div className="mt-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
               <h4 className="font-bold text-lg mb-3 text-white">¡Ayuda a mejorar esta entrada!</h4>
-<div className="flex flex-col sm:flex-row gap-3">
-  <Link
-    to={`/manga/${comic.id}/add-chapter`}
-    className="flex-1 text-center px-4 py-2 bg-[var(--secondary-accent)] text-white font-semibold rounded-md hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
-  >
+           <div className="flex flex-col sm:flex-row gap-3">
+     <Link
+         to={`/manga/${comic.id}/add-chapter`}
+         className="flex-1 text-center px-4 py-2 bg-[var(--secondary-accent)] text-white font-semibold rounded-md hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
+     >
     <Plus size={18} />
     Añadir Capítulo
-  </Link>
-
-  {/* --- ¡AQUÍ ESTÁ LA LÓGICA CONDICIONAL! --- */}
-  {/* Si el backend nos dice que el usuario tiene una propuesta pendiente... */}
-  {comic.userHasPendingProposal ? (
+   </Link>
+ 
+   {/* --- ¡AQUÍ ESTÁ LA LÓGICA CONDICIONAL! --- */}
+   {/* Si el backend nos dice que el usuario tiene una propuesta pendiente... */}
+   {comic.userHasPendingProposal ? (
     // ...mostramos un botón deshabilitado.
     <button
       disabled
@@ -200,7 +201,7 @@ const ComicDetailPage = () => {
       <Edit size={18} />
       Propuesta Enviada
     </button>
-  ) : (
+   ) : (
     // ...si no, mostramos el enlace normal.
     <Link
       to={`/manga/${comic.id}/propose-edit`}
@@ -209,11 +210,10 @@ const ComicDetailPage = () => {
       <Edit size={18} />
       Proponer Edición
     </Link>
-  )}
-</div>
-            </div>
+   )}
+     </div>
+    </div>
           )}
-          
           <div className="mt-8">
             <div className="flex justify-between items-center border-b-2 border-[var(--surface-dark)] pb-2 mb-4">
               <h3 className="text-2xl font-bold">Capítulos</h3>
@@ -236,6 +236,10 @@ const ComicDetailPage = () => {
           </div>
         </div>
       </div>
+       {isCommunityManga && (
+        <CommentSection mangaId={comic.id} />
+      )}
+
     </>
   );
 };
