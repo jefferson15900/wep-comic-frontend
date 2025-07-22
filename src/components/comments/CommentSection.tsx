@@ -1,6 +1,7 @@
 // src/components/comments/CommentSection.tsx
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // <-- ¡CORRECCIÓN 2: IMPORTA 'Link'!
 import { useAuth } from '../../context/AuthContext';
 import * as commentService from '../../api/commentService';
 import Spinner from '../common/Spinner';
@@ -58,7 +59,7 @@ const CommentCard = ({ comment, onDelete }: { comment: Comment, onDelete?: (comm
                     className="p-1 text-red-500 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900/50 flex-shrink-0 ml-2"
                     title="Eliminar comentario (Admin/Mod)"
                 >
-                    <XCircle size={24} className="text-red-500" />
+                    <XCircle size={24} />
                 </button>
             )}
         </div>
@@ -105,15 +106,11 @@ const CommentSection = ({ mangaId }: CommentSectionProps) => {
 
   const handleDeleteComment = async (commentId: string) => {
     if (!user?.token) return;
-
-    // Opcional: Mostrar un pequeño spinner local para el comentario que se está borrando
-    
     try {
       await commentService.deleteCommentById(mangaId, commentId, user.token);
       setComments(prev => prev.filter(comment => comment.id !== commentId));
     } catch (err) {
       setError('No se pudo eliminar el comentario.');
-      // Opcional: Ocultar el spinner local de borrado
     }
   };
 
@@ -137,7 +134,7 @@ const CommentSection = ({ mangaId }: CommentSectionProps) => {
               disabled={submitting || !newComment.trim()}
               className="px-6 py-2 bg-[var(--primary-accent)] text-white font-bold rounded-md disabled:opacity-50 flex items-center"
             >
-              {submitting ? <Spinner size="small" /> : 'Publicar'}
+              {submitting ? <Spinner size="sm" /> : 'Publicar'} {/* <-- ¡CORRECCIÓN 1: 'sm' en lugar de 'small'! */}
             </button>
             {error && <p className="text-red-400 text-sm">{error}</p>}
           </div>
