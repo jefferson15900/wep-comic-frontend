@@ -123,7 +123,7 @@ const Header = () => {
   
         <div className={`flex-1 flex justify-between items-center transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <Link to="/" className="flex-shrink-0">
-            <h1 className="text-white text-2xl font-bold">WepComic</h1>
+            <h1 className="text-white text-2xl font-bold">MangaWebHaven</h1>
           </Link>
           
           <div className="relative flex items-center gap-2">
