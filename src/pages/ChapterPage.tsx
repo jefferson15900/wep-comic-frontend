@@ -65,14 +65,12 @@ useEffect(() => {
         let comicData: any;
 
         if (isLocalComic && isLocalChapter) {
-          console.log("Cargando capítulo y cómic desde nuestro backend...");
           [pagesData, comicData] = await Promise.all([
             // --- PASO 2: Pasa el token a la función del servicio ---
             getUploadedChapterPages(comicId, chapterId, user?.token),
             getUploadedMangaById(comicId, user?.token) // Asumimos que esta es pública y no necesita token
           ]);
         } else {
-          console.log("Cargando capítulo y cómic desde MangaDex...");
           [pagesData, comicData] = await Promise.all([
             getChapterPages(chapterId),
             getComicById(comicId, language, showNsfw)
