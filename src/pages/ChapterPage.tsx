@@ -1,6 +1,6 @@
 // src/pages/ChapterPage.tsx
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { getChapterPages, getComicById} from '../api/comicService';
 import ComicReader from '../components/comic/ComicReader';
@@ -47,54 +47,67 @@ const ChapterPage = () => {
    const { user } = useAuth();
   
 useEffect(() => {
-  if (!comicId || !chapterId) return;
+  if (!comicId) return;
 
-  const fetchData = async () => {
+  const fetchComicDetails = async () => {
     setLoading(true);
     setError(null);
-    setPages([]);
-
-
-    // Detectamos si los IDs son locales o externos
-    const isLocalComic = comicId.startsWith('c');
-    const isLocalChapter = chapterId.startsWith('c');
-
-
-      try {
-        let pagesData: string[];
-        let comicData: any;
-
-        if (isLocalComic && isLocalChapter) {
-          [pagesData, comicData] = await Promise.all([
-            // --- PASO 2: Pasa el token a la función del servicio ---
-            getUploadedChapterPages(comicId, chapterId, user?.token),
-            getUploadedMangaById(comicId, user?.token) // Asumimos que esta es pública y no necesita token
-          ]);
-        } else {
-          [pagesData, comicData] = await Promise.all([
-            getChapterPages(chapterId),
-            getComicById(comicId, language, showNsfw)
-          ]);
-        }
-
-        setPages(pagesData);
-        setComicDetails(comicData);
-
-      } catch (err) {
-        setError('No se pudo cargar este capítulo.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     
-  fetchData();
-}, [comicId, chapterId, language, showNsfw,chapterSource,user]);
+    const isLocalComic = comicId.startsWith('c');
+
+    try {
+      const comicData = isLocalComic
+        ? await getUploadedMangaById(comicId, user?.token)
+        : await getComicById(comicId, language, showNsfw);
+      
+      setComicDetails(comicData);
+    } catch (err) {
+      setError('No se pudo cargar la información del cómic.');
+      console.error(err);
+    }
+  };
+
+  fetchComicDetails();
+}, [comicId, language, showNsfw, user]);
 
 
-  const currentChapterIndex = comicDetails?.chapters.findIndex((ch: any) => ch.id === chapterId) ?? -1;
-  const prevChapter = currentChapterIndex > 0 ? comicDetails.chapters[currentChapterIndex - 1] : null;
-  const nextChapter = currentChapterIndex < (comicDetails?.chapters.length - 1) ? comicDetails.chapters[currentChapterIndex + 1] : null;
+// --- EFECTO 2: Obtiene las PÁGINAS cada vez que cambia el capítulo ---
+useEffect(() => {
+  if (!comicId || !chapterId) return;
+
+  setLoading(true);
+  setPages([]);
+
+  const fetchChapterPages = async () => {
+    // La lógica para chapterSource podría ser relevante aquí si fuera necesario
+    const isLocalChapter = chapterId.startsWith('c');
+    
+    try {
+      const pagesData = isLocalChapter
+        ? await getUploadedChapterPages(comicId, chapterId, user?.token)
+        : await getChapterPages(chapterId);
+
+      setPages(pagesData);
+    } catch (err) {
+      setError('No se pudo cargar este capítulo.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchChapterPages();
+}, [comicId, chapterId, user, chapterSource]); 
+
+  const sortedChaptersForNav = useMemo(() => {
+    if (!comicDetails?.chapters) return [];
+    // Creamos una copia y la ordenamos de menor a mayor.
+    return [...comicDetails.chapters].sort((a: any, b: any) => a.number - b.number);
+  }, [comicDetails?.chapters]);
+
+  const currentChapterIndex = sortedChaptersForNav.findIndex((ch: any) => ch.id === chapterId) ?? -1;
+  const prevChapter = currentChapterIndex > 0 ? sortedChaptersForNav[currentChapterIndex - 1] : null;
+  const nextChapter = currentChapterIndex < (sortedChaptersForNav.length - 1) ? sortedChaptersForNav[currentChapterIndex + 1] : null;
 
   useEffect(() => {
     const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -163,7 +176,7 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isChapterListVisible]);
 
-  const chapterTitle = comicDetails?.chapters[currentChapterIndex]?.title || (comicDetails?.chapters[currentChapterIndex]?.number ? `Capítulo ${comicDetails.chapters[currentChapterIndex].number}` : 'Visor de Capítulos');
+const chapterTitle = sortedChaptersForNav[currentChapterIndex]?.title || (sortedChaptersForNav[currentChapterIndex]?.number ? `Capítulo ${sortedChaptersForNav[currentChapterIndex].number}` : 'Visor de Capítulos');
   const toggleDisplayMode = () => setDisplayMode(prev => { const newMode = prev === 'fitWidth' ? 'fitHeight' : 'fitWidth'; localStorage.setItem(DISPLAY_MODE_KEY, newMode); return newMode; });
   const toggleChapterListPanel = () => setIsChapterListVisible(prev => !prev);
   const handleChapterSelect = (selectedChapter: any) => {
@@ -207,11 +220,16 @@ useEffect(() => {
             <h3 className="text-xl font-bold">Capítulos</h3>
             <button onClick={toggleChapterListPanel} className="p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white"><X size={24} /></button>
           </div>
-          <div className="space-y-1.5">
-            {comicDetails.chapters.map((chapter: any) => (<button key={chapter.id} onClick={() => handleChapterSelect(chapter)} className={`w-full text-left block p-3 rounded-lg transition-colors ${chapter.id === chapterId ? 'bg-[var(--primary-accent)] text-white font-semibold' : 'bg-black bg-opacity-20 hover:bg-opacity-40 text-gray-300 hover:text-white'}`} title={`Ir a Capítulo ${chapter.number}`}>
-                <div className="flex justify-between items-center"><span className="truncate pr-2">Cap. {chapter.number}{chapter.title && `: ${chapter.title}`}</span>{chapter.id === chapterId && <ChevronRight size={18} className="flex-shrink-0" />}</div>
-            </button>))}
-          </div>
+<div className="space-y-1.5">
+  {sortedChaptersForNav.map((chapter: any) => ( // <-- Ahora usa el array ORDENADO
+    <button key={chapter.id} onClick={() => handleChapterSelect(chapter)} className={`w-full text-left block p-3 rounded-lg transition-colors ${chapter.id === chapterId ? 'bg-[var(--primary-accent)] text-white font-semibold' : 'bg-black bg-opacity-20 hover:bg-opacity-40 text-gray-300 hover:text-white'}`} title={`Ir a Capítulo ${chapter.number}`}>
+        <div className="flex justify-between items-center">
+            <span className="truncate pr-2">Cap. {chapter.number}{chapter.title && `: ${chapter.title}`}</span>
+            {chapter.id === chapterId && <ChevronRight size={18} className="flex-shrink-0" />}
+        </div>
+    </button>
+  ))}
+</div>
         </div>
       )}
 
