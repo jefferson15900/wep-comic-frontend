@@ -10,14 +10,11 @@ const getConfig = (token: string) => ({
 // --- Funciones para OBTENER datos ---
 export const getNewSubmissions = async (token: string, page: number) => {
   const response = await axios.get(API_URL + 'new-submissions', {
-    // La configuración de las cabeceras con el token se mantiene igual
     ...getConfig(token),
-    // ¡NUEVO! Añadimos los parámetros de la query
     params: {
       page: page // Esto añadirá "?page=X" a la URL de la petición
     }
   });
-  // La respuesta ahora es un objeto { data: [...], pagination: {...} }
   return response.data;
 };
 export const getPendingEdits = async (token: string, page: number) => { // <-- Añade page

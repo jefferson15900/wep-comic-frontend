@@ -107,12 +107,14 @@ const ComicDetailPage = () => {
       setIsSearchingOtherSources(false);
     }
   };
-
-  const sortedChapters = useMemo(() => {
+const sortedChapters = useMemo(() => {
     if (!comic?.chapters) return [];
-        const filtered = comic.chapters.filter(chapter => language === 'all' || chapter.language === language);
-    return [...filtered].sort((a, b) => sortAscending ? a.number - b.number : b.number - a.number);
-  }, [comic?.chapters, language, sortAscending]);
+    // Ya no necesitamos filtrar aquí, la API ya lo hizo.
+    // Solo aplicamos el ordenamiento que el usuario elija.
+    return [...comic.chapters].sort((a, b) => 
+        sortAscending ? a.number - b.number : b.number - a.number
+    );
+}, [comic?.chapters, sortAscending]); 
   
   const formatNumber = (num: number) => {
     if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';

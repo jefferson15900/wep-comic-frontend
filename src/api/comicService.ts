@@ -75,21 +75,22 @@ const getLanguageParams = (language: string) => {
   };
 };
 
-const mapApiFeedToChapters = (apiFeed: any[], language: string) => {
-    return apiFeed
-      .filter((chapter: any) => {
-          if (language === 'all') return true;
-          if (!chapter?.attributes?.translatedLanguage) return false;
-          return chapter.attributes.translatedLanguage.toLowerCase().startsWith(language.toLowerCase());
-      })
-      .map((chapter: any) => ({
-        id: chapter.id,
-        number: parseFloat(chapter.attributes.chapter),
-        title: chapter.attributes.title || `Capítulo ${chapter.attributes.chapter}`,
-      }))
-      .sort((a: any, b: any) => b.number - a.number);
+const mapApiFeedToChapters = (apiFeed: any[]) => {
+  if (!apiFeed) {
+    return [];
+  }
+  
+  return apiFeed
+    .map((chapter: any) => ({
+      id: chapter.id,
+      number: parseFloat(chapter.attributes.chapter),
+      title: chapter.attributes.title || `Capítulo ${chapter.attributes.chapter}`,
+      // --- ¡AÑADE ESTA LÍNEA! ---
+      // Guardamos el idioma del capítulo para usarlo en el frontend si es necesario.
+      language: chapter.attributes.translatedLanguage 
+    }))
+    .sort((a: any, b: any) => b.number - a.number);
 };
-
 
 // --- FUNCIONES DE API ---
 
@@ -114,29 +115,43 @@ export const getAllComics = async (limit: number, offset: number, searchTerm: st
   };
 };
 
-export const getComicById = async (id: string, language: string, showNsfw: boolean): Promise<MappedComic> => { // <-- Añadimos el tipo de retorno
-  const comicDetailsResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}`,{
+export const getComicById = async (id: string, language: string, showNsfw: boolean): Promise<MappedComic> => {
+  // 1. Obtenemos los detalles principales del cómic (título, autor, portada, etc.)
+  const comicDetailsResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}`, {
     params: { 'includes[]': ['cover_art', 'author'] },
   });
-  
-  // --- CORRECCIÓN ---
-  // Tipamos explícitamente comicDetails con nuestra nueva interfaz.
+
+  // Mapeamos los detalles a nuestro formato MappedComic
   const comicDetails: MappedComic = mapApiDataToComic(comicDetailsResponse.data.data);
 
-  const limit = 500;
-  const initialChaptersResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}/feed`,  {
-    params: { 'order[chapter]': 'desc', limit, offset: 0, ...getContentRatingParams(showNsfw) },
+  // 2. Obtenemos la lista de capítulos, aplicando ya el filtro de idioma desde la API
+  const limit = 500; // Límite de capítulos por petición
+  const initialChaptersResponse = await axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}/feed`, {
+    params: {
+      'order[chapter]': 'desc',
+      limit,
+      offset: 0,
+      ...getLanguageParams(language), // <-- CORRECCIÓN: Filtra por idioma en la API
+      ...getContentRatingParams(showNsfw)
+    },
   });
 
   let allChapters = initialChaptersResponse.data.data;
   const totalChapters = initialChaptersResponse.data.total;
 
+  // 3. Si hay más capítulos que el límite, hacemos peticiones adicionales para obtenerlos todos
   if (totalChapters > limit) {
     const remainingRequestsCount = Math.ceil((totalChapters - limit) / limit);
     const promises = [];
     for (let i = 1; i <= remainingRequestsCount; i++) {
       const promise = axios.get(`${YOUR_BACKEND_API_URL}/mangadex/manga/${id}/feed`, {
-        params: { 'order[chapter]': 'desc', limit, offset: i * limit, ...getContentRatingParams(showNsfw) },
+        params: {
+          'order[chapter]': 'desc',
+          limit,
+          offset: i * limit,
+          ...getLanguageParams(language), // <-- CORRECCIÓN: Filtra por idioma en la API
+          ...getContentRatingParams(showNsfw)
+        },
       });
       promises.push(promise);
     }
@@ -146,12 +161,14 @@ export const getComicById = async (id: string, language: string, showNsfw: boole
     }
   }
 
-  // --- AHORA ESTA LÍNEA ES VÁLIDA ---
-  // TypeScript sabe que MappedComic puede tener una propiedad 'chapters'.
-  comicDetails.chapters = mapApiFeedToChapters(allChapters, language);
-  
+  // 4. Mapeamos los capítulos obtenidos (que ya vienen filtrados por idioma)
+  //    a nuestro formato de capítulo, sin necesidad de filtrar de nuevo.
+  comicDetails.chapters = mapApiFeedToChapters(allChapters); // <-- CORRECCIÓN: Ya no se pasa 'language'
+
+  // 5. Devolvemos el objeto completo del cómic con sus capítulos
   return comicDetails;
 };
+
 
 export const getMangaStatistics = async (mangaId: string) => {
   try {
