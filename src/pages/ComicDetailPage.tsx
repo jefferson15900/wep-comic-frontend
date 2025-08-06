@@ -204,7 +204,6 @@ const sortedChapters = useMemo(() => {
       Propuesta Enviada
     </button>
    ) : (
-    // ...si no, mostramos el enlace normal.
     <Link
       to={`/manga/${comic.id}/propose-edit`}
       className="flex-1 text-center px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
